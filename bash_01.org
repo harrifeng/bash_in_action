@@ -64,4 +64,89 @@
     | -r     | --reverse        | reverse the order               |
     | -S     |                  | Sort result by file size        |
     | -t     |                  | Sort by modification time       | 
-  +   
+  + ls的-l选项会产生非常长的list, 这个list的各个部分的内容如下:
+    #+begin_src sh
+      hfeng@hfeng-cloud:~/tmp/testCode$ ls -al
+      total 32
+      drwxr-xr-x  4 hfeng admin 4096 Nov 30 09:18 .
+      drwxr-xr-x 11 hfeng admin 4096 Jan 21 13:49 ..
+      drwxr-xr-x  8 hfeng admin 4096 Nov 30 09:18 .git
+      -rw-r--r--  1 hfeng admin  124 Nov 30 09:18 .gitignore
+      -rw-r--r--  1 hfeng admin  175 Nov 30 09:18 README.md
+    #+end_src
+  + 我们以其中的README.md文件为例来进行分析
+    | Field        | Meaning                                       |
+    |--------------+-----------------------------------------------|
+    | -rw-r--r--   | first '-' stands for common file,             |
+    |              | first 'd' stands for directory.Following      |
+    |              | three access rights are 1) owner 2) group     |
+    |              | member 3) everyone                            |
+    | 1            | File's number of hard links                   |
+    | hfeng        | The name of the file's owner                  |
+    | admin        | The name of the group which owns the file     |
+    | 175          | Size fo the file in bytes                     |
+    | Nov 30 09:18 | Date and time of the file's last modification |
+    | README.md    | Name of the file                              |
+  + 我们说过,linux没有扩展名,所以靠file命令来查看文件
+    #+begin_src sh 
+      hfeng@hfeng-cloud:~/tmp/testCode$ file README.md 
+      README.md: ASCII English text
+      hfeng@hfeng-cloud:~/tmp/testCode$ file test.c
+      test.c: ASCII text
+      hfeng@hfeng-cloud:~/tmp/testCode$ file python
+      python: directory
+    #+end_src
+  + 我们可以利用less来当做简单的vi访问文件,在bash中b是向前,space是向后看.当然了
+    有emacs就不需要这个命令了.
+* Chapter 5: Manipulating Files And Directories
+  + cp是用来复制的这个都知道,但是wildcard不是每个人都知道哈在cp中可以使用的
+    通配符并不是很多
+    | Wildcard      | Meaning                       |
+    |---------------+-------------------------------|
+    | *             | any characters                |
+    | ?             | any single character          |
+    | [characters]  | any characters in the set     |
+    | [!characters] | any characters not in the set |
+    | [:class]     | some kind of classes          |
+  + 上面提到的class如下, 这些都是新特性, 比如[:lower:], 可以对你来说[a-z]更
+    常见和习惯,但是那些都过时了.现在的class准确性更高
+    | Character Class | Meaning                    |
+    |-----------------+----------------------------|
+    | [:alnum:]       | any alphanumeric character |
+    | [:alpha:]       | any alphabetic character   |
+    | [:digit:]       | any numeral                |
+    | [:lower:]       | any lowercase letter       |
+    | [:upper:]       | any uppercase letter       | 
+  + mkdir不用多说了创建文件夹
+  + cp是复制文件和文件夹.cp, mv是移动和重命名, 他们有如下属性值得注意
+    | Option            | Meaning                                                   |
+    | -a, --archive     | Copy to take the files' previous ownership                |
+    |                   | and permissions. If not set the copies take               |
+    |                   | on the default attributes of the user performing the      |
+    |                   | copy                                                      |
+    | -i, --interactive | If this optin is not specified cp will silently overwrite |
+    |                   | files                                                     |
+    | -r, --recursive   | Recursively copy directories and their contest, copy      |
+    |                   | directory need this                                       |
+    | -u, --update      | only new file or file existed but later file is newer,    |
+    |                   | could the copy finished                                   |
+    | -v, --verbose     | show all the copy                                         | 
+  + rm拥有上面说的i, v, r以外,还有-f (force)属性来强制删除.
+  + ln是创建软连接或者硬连接
+    #+begin_src sh
+      ln somefile hardlink
+      ln -s file_or_dir softlink
+    #+end_src
+  + 硬连接是老式连接,一旦建立起来,就等于一个文件有了两个名字,任何对其中一个文件
+    的改动都会影响到另外一个,但是删除一个另外一个却不会有影响,一旦创建硬链接.
+    两个文件的地位是相等的.
+  + 而软连接更类似windows的快捷方式,其中一个文件内容只有路径,如果另外一个文件
+    被删除这个只有内容的文件就没有什么作用了.之所以后来又创建软连接,是因为硬链接
+    天生的两个缺点:
+    - 只能在同一个文件系统内创建硬链接(硬链接其实就是指向同一个i-node)
+    - 硬链接不能指向文件夹.(文件类型只有-, d, l, 系统无从知道哪个是硬链接, 
+      一个文件夹的子文件夹如果hard link它的祖父文件夹, 这样就形成了一个环,
+      永远无法退出)
+
+
+
