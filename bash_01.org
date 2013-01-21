@@ -1,0 +1,67 @@
+* Chapter 1: Introduction
+* Chapter 2: Waht is the shell?
+** Your First Keystorkes
+   + 如果在shell promptz最后是个'#', 那表示这个terminal session 有超级管理员权限
+   + 如果只是'$', 那么只有普通管理员权限.
+** Try Some Simple Commands
+   + date, cal, df, free 分别表示日期, 日历和disk下面剩余的硬盘和内存空间
+     #+begin_src sh 
+       hfeng@hfeng-cloud:~$ date
+       Mon Jan 21 13:34:04 MSK 2013
+       hfeng@hfeng-cloud:~$ cal
+           January 2013      
+       Su Mo Tu We Th Fr Sa  
+              1  2  3  4  5  
+        6  7  8  9 10 11 12  
+       13 14 15 16 17 18 19  
+       20 21 22 23 24 25 26  
+       27 28 29 30 31        
+                             
+       hfeng@hfeng-cloud:~$ df
+       Filesystem     1K-blocks    Used Available Use% Mounted on
+       /dev/simfs       5242880 2269328   2973552  44% /
+       none              131072       8    131064   1% /dev
+       none               26216    1060     25156   5% /run
+       none                5120       0      5120   0% /run/lock
+       none              131072       0    131072   0% /run/shm     
+       hfeng@hfeng-cloud:~$ free
+                    total       used       free     shared    buffers     cached
+       Mem:        262144      59536     202608          0          0      36912
+       -/+ buffers/cache:      22624     239520
+       Swap:            0          0          0
+     #+end_src
+   + 在图形化的Linux的后台其实还是有六个console在运转.使用Ctrl+ALT-F1toF6来到达
+     这些console. Alt-F1toF6来相互切换.Alt+F7回到桌面.
+* Chapter 3 Navigation
+  + cd, pwd, ls是最重要的几个移动命令,其实cd的变体'cd -'表示上次到达的目录, 
+    'cd ~user_name'表示到达user_name的home文件夹
+    #+begin_src sh
+      hfeng@hfeng-cloud:/home/lliu$ pwd
+      /home/lliu
+      hfeng@hfeng-cloud:/home/lliu$ cd ~hfeng
+      hfeng@hfeng-cloud:~$ cd gitbox
+      hfeng@hfeng-cloud:~/gitbox$ pwd
+      /home/hfeng/gitbox
+      hfeng@hfeng-cloud:~/gitbox$ cd -
+      /home/hfeng 
+    #+end_src
+  + 文件名的几个要点:
+    - 以'.'开头的是隐藏文件,需要ls-a
+    - Linux是大小写敏感的
+    - Linux没有扩展名一说
+    - 在文件名中只使用".", "-", "_", 不要使用空格.
+* Chapter 4 Exploring The System
+  + 常用命令的option也非常重要,比如ls
+    | Option | Long Option      | Description                     |
+    |--------+------------------+---------------------------------|
+    | -a     | --all            | List all files                  |
+    | -d     | --directory      | with -l to see the information  |
+    |        |                  | about the directory rather than |
+    |        |                  | it contents                     |
+    | -F     | --classify       | give the folder a "/"           |
+    | -h     | --human-readable | human readable file size        |
+    | -l     |                  | Display in long format          |
+    | -r     | --reverse        | reverse the order               |
+    | -S     |                  | Sort result by file size        |
+    | -t     |                  | Sort by modification time       | 
+  +   
