@@ -63,7 +63,8 @@
     | -l     |                  | Display in long format          |
     | -r     | --reverse        | reverse the order               |
     | -S     |                  | Sort result by file size        |
-    | -t     |                  | Sort by modification time       | 
+    | -t     |                  | Sort by modification time       |
+    | -i     |                  | show inode number               |
   + ls的-l选项会产生非常长的list, 这个list的各个部分的内容如下:
     #+begin_src sh
       hfeng@hfeng-cloud:~/tmp/testCode$ ls -al
@@ -147,6 +148,8 @@
     - 硬链接不能指向文件夹.(文件类型只有-, d, l, 系统无从知道哪个是硬链接, 
       一个文件夹的子文件夹如果hard link它的祖父文件夹, 这样就形成了一个环,
       永远无法退出)
+* Chapter 6:Working With Commands
+  + 
 
 
 
