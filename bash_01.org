@@ -149,7 +149,297 @@
       一个文件夹的子文件夹如果hard link它的祖父文件夹, 这样就形成了一个环,
       永远无法退出)
 * Chapter 6:Working With Commands
-  + 
+  + 在shell中可以使用的命令其实是分下面四种:
+    1) 可执行程序,一般都是在/usr/bin, /bin下面等等
+    2) shell builtin,自己集成的命令, 一般集成在/bin/bash下面. 也就是说你which cmd是找
+       不到这个cmd在哪里的.
+    3) alias, 是我们基于其他命令的别称
+    4) shell function, 比如我们自己写了一个函数,然后把它放到了环境变量里面.
+  + 上面四种的前三种分别如下:
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ type cp
+      cp is /bin/cp
+      hfeng@hfeng-cloud:~$ type type
+      type is a shell builtin
+      hfeng@hfeng-cloud:~$ type ls
+      ls is aliased to `ls --color=auto' 
+    #+end_src
+  + apropos可以search整个man文档,找到某一个主题的所有命令
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ apropos floppy
+      fdformat (8)         - low-level format a floppy disk
+      mbadblocks (1)       - tests a floppy disk, and marks the bad blocks in the FAT
+      mformat (1)          - add an MSDOS filesystem to a low-level formatted flopp...
+      mxtar (1)            - Wrapper for using GNU tar directly from a floppy disk 
+    #+end_src
+  + whatis则是一句话介绍某个命令(只有可执行程序才能被解释)
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ whatis gcc
+      gcc (1)              - GNU project C and C++ compiler
+    #+end_src
+  + 创建alias是方法如下
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ alias foo='cd /tmp; ls; cd -'
+      hfeng@hfeng-cloud:~$ foo
+      hsperfdata_root  hsperfdata_tomcat6  tomcat6-tomcat6-tmp
+      /home/hfeng
+      hfeng@hfeng-cloud:~$ type foo
+      foo is aliased to `cd /tmp; ls; cd -'
+      hfeng@hfeng-cloud:~$ unalias foo
+      hfeng@hfeng-cloud:~$ type foo
+      bash: type: foo: not found
+    #+end_src
+  + 我们前面看到ls是一个alias,如果我们想看系统中所有的alias可以直接输入alias
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ alias
+      alias alert='notify-send --urgency=low -i "$([ $? = 0 ] && echo terminal || echo error)" "$(history|tail -n1|sed -e '\''s/^\s*[0-9]\+\s*//;s/[;&|]\s*alert$//'\'')"'
+      alias egrep='egrep --color=auto'
+      alias fgrep='fgrep --color=auto'
+      alias foo='cd ~; ls; cd -'
+      alias grep='grep --color=auto'
+      alias l='ls -CF'
+      alias la='ls -A'
+      alias ll='ls -alF'
+      alias ls='ls --color=auto'
+      alias rvm-restart='rvm_reload_flag=1 source '\''/home/hfeng/.rvm/scripts/rvm'\'''
+    #+end_src
+* Chapter 7: Redirection
+  + 在Unix-like系统中, everything is a file, 所以ls的输出其实就是把内容写入到一
+    个叫做standard output的文件, 把状态信息发送到standard error的文件, 默认情况下
+    stdout和stderr都是打印在屏幕上, btw读取命令的文件叫standard input
+  + '>'可以把standard output到文件中(注意只有stoud, 没有stderr), 而 '>>'可以做到
+    在文件行尾增加新的内容
+  + 如果想把stderr存到文件,那么是用2>(没有空格), 如果是把stdout和stderr都存到文件,
+    那么是用2>&1.例子如下
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ls -l /bin/usr ~ 2> ls-error.txt
+      /home/hfeng:
+      total 28
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Documents
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Music
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Pictures
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Public
+      drwxr-xr-x  8 hfeng admin 4096 Jan 21 13:24 gitbox
+      -rw-r--r--  1 hfeng admin   54 Jan 22 07:12 ls-error.txt
+      drwxr-xr-x 11 hfeng admin 4096 Jan 21 13:49 tmp
+      hfeng@hfeng-cloud:~$ cat ls-error.txt 
+      ls: cannot access /bin/usr: No such file or directory
+      hfeng@hfeng-cloud:~$ ls -l /bin/usr ~ > ls-error-output.txt 2>$1
+      bash: $1: ambiguous redirect
+      hfeng@hfeng-cloud:~$ ls -l /bin/usr ~ > ls-error-output.txt 2>&1
+      hfeng@hfeng-cloud:~$ cat ls-error-output.txt 
+      ls: cannot access /bin/usr: No such file or directory
+      /home/hfeng:
+      total 32
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Documents
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Music
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Pictures
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Public
+      drwxr-xr-x  8 hfeng admin 4096 Jan 21 13:24 gitbox
+      -rw-r--r--  1 hfeng admin   54 Jan 22 07:16 ls-error-output.txt
+      -rw-r--r--  1 hfeng admin   54 Jan 22 07:12 ls-error.txt
+      drwxr-xr-x 11 hfeng admin 4096 Jan 21 13:49 tmp
+    #+end_src
+  + 上面把stdout和stderr都导入文件的代码看起来有点诡异, 其实它的本意是首先用
+    '>'转入stdout, 然后用2>转入stderr, 这个时候&1就代表前面的文件, 新版本的
+    bash提供了一个新的方法(&>)来实现上面的行为而不至于出现&1这种很magic的代码
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ls -l /bin/usr ~ &> new-err-out.txt
+      hfeng@hfeng-cloud:~$ cat new-err-out.txt 
+      ls: cannot access /bin/usr: No such file or directory
+      /home/hfeng:
+      total 36
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Documents
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Music
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Pictures
+      drwxr-xr-x  2 hfeng admin 4096 Jan 21 13:49 Public
+      drwxr-xr-x  8 hfeng admin 4096 Jan 21 13:24 gitbox
+      -rw-r--r--  1 hfeng admin  504 Jan 22 07:16 ls-error-output.txt
+      -rw-r--r--  1 hfeng admin   54 Jan 22 07:12 ls-error.txt
+      -rw-r--r--  1 hfeng admin   54 Jan 22 07:21 new-err-out.txt
+      drwxr-xr-x 11 hfeng admin 4096 Jan 21 13:49 tmp 
+    #+end_src
+  + cat可以处理stdin, 方法如下,各种变化
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ echo helloworld > test.txt
+      hfeng@hfeng-cloud:~$ cat < test.txt
+      helloworld
+      hfeng@hfeng-cloud:~$ cat > test.txt
+      hello world hello world
+      
+      
+      hfeng@hfeng-cloud:~$ cat < test.txt
+      hello world hello world
+      hfeng@hfeng-cloud:~$ cat
+      hello world
+      hello world
+      
+    #+end_src
+  + uniq可以去除排序中的重复,如果我们只想看重复,那么就可以用uniq -d 
+    而wc可以打印出来记过有多少行, 多少word,多少bytes -l只看行
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ls /bin /usr/bin | sort | uniq -d
+      less
+      lessecho
+      lessfile
+      lesskey
+      lesspipe
+      tcsh
+      touch
+      which
+      hfeng@hfeng-cloud:~$ ls /bin /usr/bin | sort | uniq -d| wc -l
+      8
+      hfeng@hfeng-cloud:~$ ls /bin /usr/bin | sort | uniq | wc -l
+      980 
+    #+end_src
+  + grep是查询,head, first是查看头和尾.都很常见. grep的格式是grep pattern [file],
+    如果没有file的话,这个grep就是对stdin进行的, 也就是pipeline传入进来的.
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ls /bin /usr/bin | sort | uniq | grep zip
+      bunzip2
+      bzip2
+      bzip2recover
+      funzip
+      gpg-zip
+      gunzip
+      gzip
+      miniunzip
+      minizip
+      mzip
+      unzip
+      unzipsfx
+      zipgrep
+      zipinfo
+      hfeng@hfeng-cloud:~$ ls /bin /usr/bin | sort | uniq | grep zip | head -3
+      bunzip2
+      bzip2
+      bzip2recover
+      hfeng@hfeng-cloud:~$ ls /bin /usr/bin | sort | uniq | grep zip | tail -3
+      unzipsfx
+      zipgrep
+      zipinfo 
+    #+end_src
+  + 为了能够在管道中间保存一份拷贝, 同时保证管道不断,又发明了tee
+    #+begin_src sh 
+      hfeng@hfeng-cloud:~$ ls /usr/bin | tee ls.txt | grep zip
+      funzip
+      gpg-zip
+      miniunzip
+      minizip
+      mzip
+      unzip
+      unzipsfx
+      zipgrep
+      zipinfo
+      hfeng@hfeng-cloud:~$ ls -l ls.txt
+      -rw-r--r-- 1 hfeng admin 7424 Jan 22 07:43 ls.txt    
+    #+end_src
+* Chapter 8: Seeing the world as the shell sees it.
+  + echo 可以说直接体现了shell的思维, 可以通过echo来看看shell在想些什么.
+* Chapter 9: Advanced Keyboard Tricks
+* Chapter 10: Permissions
+  + id, chmod, umask, su, sudo , chown, chgrp, passwd
+* Chapter 11: Processes
+  + ps 可以查看当前运行的process, 但是默认只有当前terminal相关的process,通常
+    来说就是bash和ps
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ps
+        PID TTY          TIME CMD
+       4924 pts/3    00:00:00 bash
+      10010 pts/3    00:00:00 ps
+    #+end_src
+  + 如果想要更多的信息,我们可以加x (不需要-), 就会显示出来当前用户所有的进程, 
+    而且多了一个STAT(status栏目)来追踪进程当前的状态.aux的话会显示包括所有
+    用户的进程信息
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ps x
+        PID TTY      STAT   TIME COMMAND
+       4923 ?        S      0:00 sshd: hfeng@pts/3   
+       4924 pts/3    Ss     0:00 /bin/bash --noediting -i
+       8392 ?        S      0:00 sshd: hfeng@pts/2   
+       8393 pts/2    Ss+    0:00 /bin/sh
+      10003 pts/3    R+     0:00 ps x
+      
+      hfeng@hfeng-cloud:~$ ps aux
+      USER       PID %CPU %MEM    VSZ   RSS TTY      STAT START   TIME COMMAND
+      root         1  0.0  0.2  24024   756 ?        Ss   Jan04   0:01 init
+      root         2  0.0  0.0      0     0 ?        S    Jan04   0:00 [kthreadd/230]
+      root         3  0.0  0.0      0     0 ?        S    Jan04   0:00 [khelper/230]
+      root       166  0.0  0.0  17188    32 ?        S    Jan04   0:00 upstart-udev-br
+      root       177  0.0  0.1  49912   368 ?        Ss   Jan04   0:04 /usr/sbin/sshd
+      root       185  0.0  0.0  21292    28 ?        Ss   Jan04   0:00 /sbin/udevd --d
+      root       305  0.0  0.0  21288    28 ?        S    Jan04   0:00 /sbin/udevd --d
+      root       306  0.0  0.0  21288    28 ?        S    Jan04   0:00 /sbin/udevd --d
+      root       345  0.0  0.0  15144    28 ?        S    Jan04   0:00 upstart-socket-
+      root       384  0.0  0.0  14924    28 ?        Ss   Jan04   0:00 /usr/sbin/xinet
+      root       401  0.0  0.1  19068   300 ?        Ss   Jan04   0:01 cron
+      root       404  0.0  0.2  91208   708 ?        Ss   Jan04   0:08 nmbd -D
+      syslog     421  0.0  0.1  12708   484 ?        Ss   Jan04   0:05 /sbin/syslogd -
+      postgres   444  0.0  0.1 124840   364 ?        S    Jan04   0:07 /usr/lib/postgr
+      postgres   447  0.0  0.0 124824   188 ?        Ss   Jan04   1:59 postgres: write
+      postgres   448  0.0  0.0 124824    96 ?        Ss   Jan04   1:31 postgres: wal w
+      postgres   449  0.0  0.3 125564   960 ?        Ss   Jan04   0:23 postgres: autov
+      postgres   450  0.0  0.1  93200   316 ?        Ss   Jan04   0:17 postgres: stats
+      root       492  0.0  0.0  78620    16 ?        Ss   Jan04   0:00 /usr/sbin/sasla
+      root       494  0.0  0.0  78620     4 ?        S    Jan04   0:00 /usr/sbin/sasla
+      root       558  0.0  0.1  89044   480 ?        Ss   Jan04   0:24 sendmail: MTA: 
+      root      4911  0.0  0.9  73316  2588 ?        Ss   Jan21   0:00 sshd: hfeng [pr
+      hfeng     4923  0.0  0.5  73316  1320 ?        S    Jan21   0:00 sshd: hfeng@pts
+      hfeng     4924  0.0  0.9  19604  2544 pts/3    Ss   Jan21   0:00 /bin/bash --noe
+      root      8380  0.0  1.2  73316  3360 ?        Ss   05:55   0:00 sshd: hfeng [pr
+      hfeng     8392  0.0  0.7  73464  1904 ?        S    05:55   0:00 sshd: hfeng@pts
+      hfeng     8393  0.0  0.3  12788   960 pts/2    Ss+  05:55   0:00 /bin/sh
+      hfeng    10054  0.0  0.4  15236  1124 pts/3    R+   09:45   0:00 ps aux 
+    #+end_src
+  + 类型windows的资源管理器, bash有个动态的命令叫top
+  + jobs可以看到从我们当前terminal启动的命令, fg是把程序放到前台运行, bg是把程序
+    放到后台(还是在运行), 而ctrl+z就是stop当前process了
+    #+begin_src sh
+      hfeng@hfeng-cloud:~$ ps
+        PID TTY          TIME CMD
+       4924 pts/3    00:00:00 bash
+      10648 pts/3    00:00:00 ps
+      hfeng@hfeng-cloud:~$ ./a.out
+      
+      
+      [1]+  Stopped                 ./a.out
+      hfeng@hfeng-cloud:~$ hfeng@hfeng-cloud:~$ ps
+        PID TTY          TIME CMD
+       4924 pts/3    00:00:00 bash
+      10649 pts/3    00:00:08 a.out
+      10650 pts/3    00:00:00 ps
+      hfeng@hfeng-cloud:~$ jobs
+      [1]+  Stopped                 ./a.out
+      hfeng@hfeng-cloud:~$ bg %1
+      [1]+ ./a.out &
+      hfeng@hfeng-cloud:~$ ps
+        PID TTY          TIME CMD
+       4924 pts/3    00:00:00 bash
+      10649 pts/3    00:00:12 a.out
+      10652 pts/3    00:00:00 ps
+      hfeng@hfeng-cloud:~$ kill 10649
+      hfeng@hfeng-cloud:~$ ps
+        PID TTY          TIME CMD
+       4924 pts/3    00:00:00 bash
+      10653 pts/3    00:00:00 ps
+      [1]+  Terminated              ./a.out
+      hfeng@hfeng-cloud:~$ ps
+        PID TTY          TIME CMD
+       4924 pts/3    00:00:00 bash
+      10654 pts/3    00:00:00 ps 
+    #+end_src
+
+
+
+
+
+    
+
+
+
+
+
+
 
 
 
